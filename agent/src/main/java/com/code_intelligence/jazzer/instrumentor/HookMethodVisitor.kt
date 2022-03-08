@@ -91,19 +91,6 @@ private class HookMethodVisitor(
             return
         }
 
-        if (java6Mode && hookType == HookType.REPLACE) {
-            if (showUnsupportedHookWarning.getAndSet(false)) {
-                println(
-                    """WARN: Some hooks could not be applied to class files built for Java 7 or lower.
-                      |WARN: Ensure that the fuzz target and its dependencies are compiled with
-                      |WARN: -target 8 or higher to identify as many bugs as possible.
-            """.trimMargin()
-                )
-            }
-            visitNextHookTypeOrCall(hookType, false, opcode, owner, methodName, methodDescriptor, isInterface)
-            return
-        }
-
         matchingHooks.forEachIndexed { index, hook ->
             // The hookId is used to identify a call site.
             val hookId = random.nextInt()
@@ -201,6 +188,17 @@ private class HookMethodVisitor(
                     }
                 }
                 HookType.REPLACE -> {
+                    if (java6Mode) {
+                        if (showUnsupportedHookWarning.getAndSet(false)) {
+                            println(
+                                """WARN: Some hooks could not be applied to class files built for Java 7 or lower.
+                      |WARN: Ensure that the fuzz target and its dependencies are compiled with
+                      |WARN: -target 8 or higher to identify as many bugs as possible.
+            """.trimMargin()
+                            )
+                        }
+                        return@forEachIndexed
+                    }
                     // Call the hook method
                     mv.visitMethodInsn(
                         Opcodes.INVOKESTATIC,
@@ -283,16 +281,18 @@ private class HookMethodVisitor(
     )
 
     private fun findMatchingHooks(owner: String, name: String, descriptor: String): List<Hook> {
-        val result = HookType.values().map { hookType ->
+        val result = HookType.values().flatMap { hookType ->
             val withoutDescriptorKey = "$hookType#$owner#$name"
             val withDescriptorKey = "$withoutDescriptorKey#$descriptor"
             hooks[withDescriptorKey].orEmpty() + hooks[withoutDescriptorKey].orEmpty()
-        }.flatten().sortedBy { it.hookType }
-        require(
+        }.sortedBy { it.hookType }
+        check(
             result.isEmpty() ||
                 result.count { it.hookType != HookType.REPLACE } == result.size ||
-                result.count { it.hookType == HookType.REPLACE } == 1
-        )
+                result == listOf(HookType.REPLACE)
+        ) {
+            "For a given method, You can either have a single REPLACE hook or BEFORE/AFTER hooks. Found:\n ${result.joinToString { "\n" }}"
+        }
         return result
     }
 

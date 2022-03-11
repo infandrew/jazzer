@@ -1,0 +1,11 @@
+LIBRARY    jazzer_driver
+EXPORTS
+    __sanitizer_weak_hook_compare_bytes    @1
+    __sanitizer_weak_hook_strstr    @2
+    __sanitizer_weak_hook_memmem    @3
+    __sanitizer_cov_trace_cmp4    @4
+    __sanitizer_cov_trace_cmp8    @5
+    __sanitizer_cov_trace_switch    @6
+    __sanitizer_cov_trace_div4    @7
+    __sanitizer_cov_trace_div8    @8
+    __sanitizer_cov_trace_gep    @9

@@ -20,23 +20,32 @@
 #include "com_code_intelligence_jazzer_runtime_TraceDataFlowNativeCallbacks.h"
 #include "driver/sanitizer_hooks_with_pc.h"
 
+#ifdef _WIN32
+#define DLLIMPORT __declspec(dllimport)
+#else
+#define DLLIMPORT
+#endif
+
 namespace {
 
 extern "C" {
-void __sanitizer_weak_hook_compare_bytes(void *caller_pc, const void *s1,
-                                         const void *s2, std::size_t n1,
-                                         std::size_t n2, int result);
-void __sanitizer_weak_hook_memmem(void *called_pc, const void *s1, size_t len1,
-                                  const void *s2, size_t len2, void *result);
-void __sanitizer_cov_trace_cmp4(uint32_t arg1, uint32_t arg2);
-void __sanitizer_cov_trace_cmp8(uint64_t arg1, uint64_t arg2);
+DLLIMPORT void __sanitizer_weak_hook_compare_bytes(void *caller_pc,
+                                                   const void *s1,
+                                                   const void *s2,
+                                                   std::size_t n1,
+                                                   std::size_t n2, int result);
+DLLIMPORT void __sanitizer_weak_hook_memmem(void *called_pc, const void *s1,
+                                            size_t len1, const void *s2,
+                                            size_t len2, void *result);
+DLLIMPORT void __sanitizer_cov_trace_cmp4(uint32_t arg1, uint32_t arg2);
+DLLIMPORT void __sanitizer_cov_trace_cmp8(uint64_t arg1, uint64_t arg2);
 
-void __sanitizer_cov_trace_switch(uint64_t val, uint64_t *cases);
+DLLIMPORT void __sanitizer_cov_trace_switch(uint64_t val, uint64_t *cases);
 
-void __sanitizer_cov_trace_div4(uint32_t val);
-void __sanitizer_cov_trace_div8(uint64_t val);
+DLLIMPORT void __sanitizer_cov_trace_div4(uint32_t val);
+DLLIMPORT void __sanitizer_cov_trace_div8(uint64_t val);
 
-void __sanitizer_cov_trace_gep(uintptr_t idx);
+DLLIMPORT void __sanitizer_cov_trace_gep(uintptr_t idx);
 }
 
 inline __attribute__((always_inline)) void *idToPc(jint id) {

@@ -17,6 +17,12 @@
 #include <cstddef>
 #include <cstdint>
 
+#ifdef _WIN32
+#define DLLIMPORT __declspec(dllimport)
+#else
+#define DLLIMPORT
+#endif
+
 // libFuzzer's compare hooks obtain the caller's address from the compiler
 // builtin __builtin_return_adress. Since Java code will invoke the hooks always
 // from the same native function, this builtin would always return the same
@@ -163,13 +169,13 @@ __attribute__((always_inline)) inline uint16_t caller_pc_to_fake_pc(
 // The original hooks exposed by libFuzzer. All of these get the caller's
 // address via __builtin_return_address(0).
 extern "C" {
-void __sanitizer_cov_trace_cmp4(uint32_t arg1, uint32_t arg2);
-void __sanitizer_cov_trace_cmp8(uint64_t arg1, uint64_t arg2);
-void __sanitizer_cov_trace_switch(uint64_t val, uint64_t *cases);
-void __sanitizer_cov_trace_div4(uint32_t val);
-void __sanitizer_cov_trace_div8(uint64_t val);
-void __sanitizer_cov_trace_gep(uintptr_t idx);
-void __sanitizer_cov_trace_pc_indir(uintptr_t callee);
+DLLIMPORT void __sanitizer_cov_trace_cmp4(uint32_t arg1, uint32_t arg2);
+DLLIMPORT void __sanitizer_cov_trace_cmp8(uint64_t arg1, uint64_t arg2);
+DLLIMPORT void __sanitizer_cov_trace_switch(uint64_t val, uint64_t *cases);
+DLLIMPORT void __sanitizer_cov_trace_div4(uint32_t val);
+DLLIMPORT void __sanitizer_cov_trace_div8(uint64_t val);
+DLLIMPORT void __sanitizer_cov_trace_gep(uintptr_t idx);
+DLLIMPORT void __sanitizer_cov_trace_pc_indir(uintptr_t callee);
 }
 void __sanitizer_cov_trace_cmp4_with_pc(void *caller_pc, uint32_t arg1,
                                         uint32_t arg2) {
